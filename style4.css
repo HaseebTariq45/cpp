@@ -1,0 +1,16 @@
+/* /* /* h2
+{
+    color: rgb(120, 43, 145);
+} */
+ /* text allign property */
+
+
+ h1
+ {
+    text-align: center ;
+
+    border: solid;
+ }
+ p{
+    text-align: center;
+ }\

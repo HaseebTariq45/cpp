@@ -1,0 +1,33 @@
+h2
+{
+    color: rgb(45, 156, 45);
+}
+input
+{
+    color: rgb(255, 255, 255);
+    background-color: black;
+}
+label
+{
+    color: white;
+}
+select
+{
+    color: red;
+    background-color: rgb(168, 206, 194);
+    cursor: pointer;
+    shape-outside:margin-box;
+}
+option
+{
+    cursor: pointer;
+}
+button
+{
+    background-color: aqua;
+    border-color: aqua;
+    cursor: pointer;}
+    body
+    {
+        background-color: rgb(0, 0, 0);
+    }

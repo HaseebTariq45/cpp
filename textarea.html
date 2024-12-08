@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form action="/server">
+       Chose your profession
+    <select name="profession" id="profession">
+        <option value="sel">Select your option</option>
+        <option value="stu">Student</option>
+        <option value="dev">Developer</option>
+        <option value="gay">Gay</option>
+    </select>
+    
+<label for="gays">Select your gayness level</label>
+<input type="range" name="gays" id="gays" min="0" max="100" step="">
+<button>submit</button>
+
+<hr>
+<label for="feedback">Please give you valuable feedback</label>
+<textarea name="feedback" id="feedback" rows="5" cols="50" placeholder="Write your feedback here"></textarea>
+<button type="submit"></button>
+
+    </form> 
+</body>
+</html>
