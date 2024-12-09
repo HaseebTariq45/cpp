@@ -1,265 +1,108 @@
 #include <iostream>
-#include <string>
 using namespace std;
 
-// Base class for user-related operations
-class User {
-public:
-    int AdminId[100]{};
-    string AdminName[100];
-    string AdminEmail[100];
-    string StudentName[100];
-    int StudentId[100]{};
-    string FacultyName[100];
-    int FacultyId[100]{};
-    string VAttendance[100];
-    string StudentAttendance[100];
-    string MFAttendance[100];
-    int adminSize = 0;
-    int studentSize = 0;
-    int facultySize = 0;
+const int MAX = 100;
 
-    int handleIntegerInput() {
-        int input;
-        cout << "Enter your choice: ";
-        while (!(cin >> input)) {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Invalid input. Please enter a number: ";
+struct Edge {
+    int src, dest, weight;
+};
+
+struct DisjointSet {
+    int parent[MAX], rank[MAX];
+
+    void init(int V) {
+        for (int i = 0; i < V; i++) {
+            parent[i] = i;
+            rank[i] = 0;
         }
-        return input;
+    }
+
+    int find(int i) {
+        if (parent[i] != i)
+            parent[i] = find(parent[i]);
+        return parent[i];
+    }
+
+    void unionSets(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+
+        if (rootX != rootY) {
+            if (rank[rootX] > rank[rootY]) {
+                parent[rootY] = rootX;
+            } else if (rank[rootX] < rank[rootY]) {
+                parent[rootX] = rootY;
+            } else {
+                parent[rootY] = rootX;
+                rank[rootX]++;
+            }
+        }
     }
 };
 
-// Admin class for admin-related operations
-class Admin : public User {
-private:
-    User* user;
+bool compare(Edge e1, Edge e2) {
+    return e1.weight < e2.weight;
+}
 
-public:
-    Admin(User* u) : user(u) {}
+void kruskal(int graph[MAX][MAX], int V, int E) {
+    Edge edges[E];
+    int edgeCount = 0;
 
-    void adminMenu() {
-        bool exit = false;
-        while (!exit) {
-            cout << "\n--- Admin Menu ---\n";
-            cout << "1. Add User\n2. Delete User\n3. Update User\n4. View Users\n5. Faculty Attendance\n6. Exit\n";
-            int choice = user->handleIntegerInput();
-
-            switch (choice) {
-            case 1:
-                addUser();
-                break;
-            case 2:
-                deleteUser();
-                break;
-            case 3:
-                updateUser();
-                break;
-            case 4:
-                viewUsers();
-                break;
-            case 5:
-                facultyAttendanceMenu();
-                break;
-            case 6:
-                cout << "Exiting Admin Menu.\n";
-                exit = true;
-                break;
-            default:
-                cout << "Invalid choice. Try again.\n";
+    for (int i = 0; i < V; i++) {
+        for (int j = i + 1; j < V; j++) {
+            if (graph[i][j] != 0) {
+                edges[edgeCount].src = i;
+                edges[edgeCount].dest = j;
+                edges[edgeCount].weight = graph[i][j];
+                edgeCount++;
             }
         }
     }
 
-    void addUser() {
-        cout << "\n1. Add Admin\n2. Add Student\n3. Add Faculty\n4. Exit\n";
-        int choice = user->handleIntegerInput();
-
-        switch (choice) {
-        case 1: {
-            cout << "Enter number of Admins to add: ";
-            int count;
-            cin >> count;
-            cin.ignore();
-            for (int i = user->adminSize; i < user->adminSize + count; i++) {
-                cout << "Enter Admin Name: ";
-                getline(cin, user->AdminName[i]);
-                cout << "Enter Admin Email: ";
-                getline(cin, user->AdminEmail[i]);
-                cout << "Enter Admin ID: ";
-                cin >> user->AdminId[i];
-                cin.ignore();
-            }
-            user->adminSize += count;
-            break;
-        }
-        case 2: {
-            cout << "Enter number of Students to add: ";
-            int count;
-            cin >> count;
-            cin.ignore();
-            for (int i = user->studentSize; i < user->studentSize + count; i++) {
-                cout << "Enter Student Name: ";
-                getline(cin, user->StudentName[i]);
-                cout << "Enter Student ID: ";
-                cin >> user->StudentId[i];
-                cin.ignore();
-            }
-            user->studentSize += count;
-            break;
-        }
-        case 3: {
-            cout << "Enter number of Faculties to add: ";
-            int count;
-            cin >> count;
-            cin.ignore();
-            for (int i = user->facultySize; i < user->facultySize + count; i++) {
-                cout << "Enter Faculty Name: ";
-                getline(cin, user->FacultyName[i]);
-                cout << "Enter Faculty ID: ";
-                cin >> user->FacultyId[i];
-                cin.ignore();
-            }
-            user->facultySize += count;
-            break;
-        }
-        case 4:
-            cout << "Exiting Add User.\n";
-            break;
-        default:
-            cout << "Invalid choice. Try again.\n";
-        }
-    }
-
-    void deleteUser() {
-        cout << "\n1. Delete Admin\n2. Delete Student\n3. Delete Faculty\n";
-        int choice = user->handleIntegerInput();
-
-        switch (choice) {
-        case 1:
-            deleteAdmin();
-            break;
-        case 2:
-            deleteStudent();
-            break;
-        case 3:
-            deleteFaculty();
-            break;
-        default:
-            cout << "Invalid choice. Try again.\n";
-        }
-    }
-
-    void deleteAdmin() {
-        cout << "Enter Admin ID to delete: ";
-        int id;
-        cin >> id;
-        for (int i = 0; i < user->adminSize; i++) {
-            if (user->AdminId[i] == id) {
-                cout << "Deleting Admin: " << user->AdminName[i] << "\n";
-                user->AdminName[i] = "";
-                user->AdminEmail[i] = "";
-                user->AdminId[i] = 0;
-                break;
+    for (int i = 0; i < E - 1; i++) {
+        for (int j = i + 1; j < E; j++) {
+            if (compare(edges[j], edges[i])) {
+                Edge temp = edges[i];
+                edges[i] = edges[j];
+                edges[j] = temp;
             }
         }
     }
 
-    void deleteStudent() {
-        cout << "Enter Student ID to delete: ";
-        int id;
-        cin >> id;
-        for (int i = 0; i < user->studentSize; i++) {
-            if (user->StudentId[i] == id) {
-                cout << "Deleting Student: " << user->StudentName[i] << "\n";
-                user->StudentName[i] = "";
-                user->StudentId[i] = 0;
-                break;
-            }
+    DisjointSet ds;
+    ds.init(V);
+
+    int mstWeight = 0;
+    cout << "Cables to lay down for connecting cities:\n";
+
+    for (int i = 0; i < E; i++) {
+        int u = edges[i].src;
+        int v = edges[i].dest;
+
+        if (ds.find(u) != ds.find(v)) {
+            cout << "City " << u << " - City " << v << " : " << edges[i].weight << endl;
+            mstWeight += edges[i].weight;
+            ds.unionSets(u, v);
         }
     }
 
-    void deleteFaculty() {
-        cout << "Enter Faculty ID to delete: ";
-        int id;
-        cin >> id;
-        for (int i = 0; i < user->facultySize; i++) {
-            if (user->FacultyId[i] == id) {
-                cout << "Deleting Faculty: " << user->FacultyName[i] << "\n";
-                user->FacultyName[i] = "";
-                user->FacultyId[i] = 0;
-                break;
-            }
-        }
-    }
+    cout << "Total cable-laying cost: " << mstWeight << endl;
+}
 
-    void updateUser() {
-        cout << "Update functionality not implemented in this version.\n";
-    }
-
-    void viewUsers() {
-        cout << "\n1. View Admins\n2. View Students\n3. View Faculty\n";
-        int choice = user->handleIntegerInput();
-
-        switch (choice) {
-        case 1:
-            for (int i = 0; i < user->adminSize; i++) {
-                if (!user->AdminName[i].empty()) {
-                    cout << "Admin Name: " << user->AdminName[i]
-                         << ", Email: " << user->AdminEmail[i]
-                         << ", ID: " << user->AdminId[i] << "\n";
-                }
-            }
-            break;
-        case 2:
-            for (int i = 0; i < user->studentSize; i++) {
-                if (!user->StudentName[i].empty()) {
-                    cout << "Student Name: " << user->StudentName[i]
-                         << ", ID: " << user->StudentId[i] << "\n";
-                }
-            }
-            break;
-        case 3:
-            for (int i = 0; i < user->facultySize; i++) {
-                if (!user->FacultyName[i].empty()) {
-                    cout << "Faculty Name: " << user->FacultyName[i]
-                         << ", ID: " << user->FacultyId[i] << "\n";
-                }
-            }
-            break;
-        default:
-            cout << "Invalid choice. Try again.\n";
-        }
-    }
-
-    void facultyAttendanceMenu() {
-        cout << "Faculty attendance functionality not implemented in this version.\n";
-    }
-};
-
-// Main function
 int main() {
-    User user;
-    Admin admin(&user);
+    int V = 5;
+    int E = 7;
 
-    bool exit = false;
-    while (!exit) {
-        cout << "\n--- Main Menu ---\n";
-        cout << "1. Admin\n2. Exit\n";
-        int choice = user.handleIntegerInput();
+    int graph[MAX][MAX] = {
+        {0, 10, 0, 0, 0},
+        {10, 0, 15, 0, 0},
+        {0, 15, 0, 20, 0},
+        {0, 0, 20, 0, 25},
+        {0, 0, 0, 25, 0}
+    };
 
-        switch (choice) {
-        case 1:
-            admin.adminMenu();
-            break;
-        case 2:
-            cout << "Exiting program. Goodbye!\n";
-            exit = true;
-            break;
-        default:
-            cout << "Invalid choice. Try again.\n";
-        }
-    }
+    cout << "\nMinimum cable-laying cost to connect all cities:\n";
+    kruskal(graph, V, E);
+
     return 0;
 }
