@@ -208,12 +208,11 @@ void DisplayPost(Node* root) {
 int main() {
     Node* root = NULL;
 
+    root = Insert(root, 11);
+    root = Insert(root, 12);
     root = Insert(root, 10);
-    root = Insert(root, 5);
-    root = Insert(root, 2);
     root = Insert(root, 15);
-    root = Insert(root, 25);
-    root = Insert(root, 35);root = Insert(root, 1);
+    root = Insert(root, 17);
 
     cout << "\nInorder Traversal: ";
     Display(root);

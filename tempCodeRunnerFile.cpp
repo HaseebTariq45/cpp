@@ -1,70 +1,58 @@
-#include <iostream>
-#include <climits>
+#include<iostream>
 using namespace std;
 
-const int MAX_SIZE = 100;
+void insert(int a[], int n)
+ {
+    int i = n;
+    int temp = a[i];
 
-void findShortestPaths(int roadNetwork[MAX_SIZE][MAX_SIZE], int totalLocations, int startLocation) {
-    int shortestTime[MAX_SIZE];
-    bool isLocationVisited[MAX_SIZE];
-    int previousLocation[MAX_SIZE];
-
-    for (int i = 0; i < totalLocations; i++) {
-        shortestTime[i] = INT_MAX;
-        isLocationVisited[i] = false;
-        previousLocation[i] = -1;
+    while (i > 1 && temp > a[i / 2])
+     {
+        a[i] = a[i / 2];  // Move the parent down
+        i = i / 2;        // Move up the tree
     }
-
-    shortestTime[startLocation] = 0;
-
-    for (int count = 0; count < totalLocations - 1; count++) {
-        int minTime = INT_MAX, currentLocation;
-
-        for (int location = 0; location < totalLocations; location++) {
-            if (!isLocationVisited[location] && shortestTime[location] < minTime) {
-                minTime = shortestTime[location];
-                currentLocation = location;
-            }
-        }
-
-        isLocationVisited[currentLocation] = true;
-
-        for (int adjacentLocation = 0; adjacentLocation < totalLocations; adjacentLocation++) {
-            if (roadNetwork[currentLocation][adjacentLocation] && !isLocationVisited[adjacentLocation] &&
-                shortestTime[currentLocation] != INT_MAX &&
-                shortestTime[currentLocation] + roadNetwork[currentLocation][adjacentLocation] < shortestTime[adjacentLocation]) {
-                shortestTime[adjacentLocation] = shortestTime[currentLocation] + roadNetwork[currentLocation][adjacentLocation];
-                previousLocation[adjacentLocation] = currentLocation;
-            }
-        }
-    }
-
-    cout << "Location\tShortest Time\tPath\n";
-    for (int i = 0; i < totalLocations; i++) {
-        cout << i << "\t\t" << shortestTime[i] << "\t\t";
-        int temp = i;
-        while (temp != -1) {
-            cout << temp << " ";
-            temp = previousLocation[temp];
-        }
-        cout << "\n";
-    }
+    a[i] = temp;  // Place temp in its correct position
 }
 
-int main() {
-    int totalLocations = 5;
-    int roadNetwork[MAX_SIZE][MAX_SIZE] = {
-        {0, 15, 25, 0, 0},
-        {15, 0, 10, 20, 0},
-        {25, 10, 0, 15, 35},
-        {0, 20, 15, 0, 30},
-        {0, 0, 35, 30, 0}
-    };
+int del(int a[], int n) 
+{
+    int val = a[1];  // Store the root value to be deleted
+    int x = a[n];    // Take the last element
+    a[1] = x;        // Move the last element to the root
+    int i = 1, j = 2 * i;
 
-    int startLocation = 0;
+    while (j <= n - 1) {
+        if (j + 1 <= n - 1 && a[j + 1] > a[j]) {
+            j = j + 1;  // Find the larger child
+        }
+        if (a[i] < a[j]) {
+            swap(a[i], a[j]);  // Swap if parent is smaller
+            i = j;
+            j = 2 * i;
+        } else {
+            break;
+        }
+    }
+    return val;
+}
 
-    cout << "\nFastest Delivery Routes:\n";
-    findShortestPaths(roadNetwork, totalLocations, startLocation);
+int main()
+ {
+    int h[]{ 0, 10, 20, 30, 25, 5, 40, 35 };
+
+    // Insert elements into the heap
+    for (int i = 2; i <= 7; i++) 
+    {
+        insert(h, i);
+    }
+
+    // Delete the root element
+    del(h, 7);
+
+    // Print the heap array
+    for (int i = 1; i <= 7; i++) {
+        cout << h[i] << " ";
+    }
 
     return 0;
 }
