@@ -3,14 +3,8 @@
 #include <vector>
 #include <array>
 #include <cstring>
-#include <cstdint> // Try to include the cstdint header
 
 using namespace std;
-
-// Define uint8_t as unsigned char if it is not defined
-#ifndef uint8_t
-typedef unsigned char uint8_t;
-#endif
 
 // AES S-box
 const uint8_t S_BOX[16][16] = {
@@ -76,41 +70,118 @@ void AES_Encrypt(uint8_t plaintext[16], uint8_t key[16], uint8_t ciphertext[16])
             ciphertext[i + 4 * j] = state[i][j];
 }
 
-// Function to print the state matrix in a more readable way
-void PrintState(uint8_t state[4][4]) {
-    cout << "State Matrix (Hexadecimal):" << endl;
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            cout << hex << setw(2) << setfill('0') << (int)state[i][j] << " ";
-        }
-        cout << endl;
-    }
-}
-
 // Main function
 int main() {
     uint8_t plaintext[16] = {'C', 'o', 'n', 'f', 'i', 'd', 'e', 'n', 't', 'i', 'a', 'l', 'M', 's', 'g', '\0'};
     uint8_t key[16] = {'E', 'n', 'c', 'r', 'y', 'p', 't', 'A', 'E', 'S', 'K', 'e', 'y', '1', '2', '\0'};
     uint8_t ciphertext[16];
 
-    // Display Input Data
     cout << "Plaintext: ";
     for (int i = 0; i < 16; ++i)
         cout << plaintext[i];
     cout << endl;
-    
-    cout << "Key: ";
-    for (int i = 0; i < 16; ++i)
-        cout << key[i];
-    cout << endl;
 
     AES_Encrypt(plaintext, key, ciphertext);
 
-    // Display Encrypted Ciphertext
-    cout << "\nEncrypted Ciphertext (Hexadecimal): ";
+    cout << "Ciphertext: ";
     for (int i = 0; i < 16; ++i)
         cout << hex << setw(2) << setfill('0') << (int)ciphertext[i];
     cout << endl;
 
     return 0;
+}
+
+void KeyExpansion(const uint8_t* key, uint8_t roundKeys[11][4][4]) {
+    for (int i = 0; i < 16; i++) {
+        roundKeys[0][i / 4][i % 4] = key[i];
+    }
+
+    for (int round = 1; round <= 10; ++round) {
+        uint8_t temp[4];
+        for (int i = 0; i < 4; ++i) {
+            temp[i] = roundKeys[round - 1][i][3];
+        }
+
+        // Rotate and SubBytes for key schedule
+        uint8_t t = temp[0];
+        temp[0] = S_BOX[temp[1] >> 4][temp[1] & 0xF];
+        temp[1] = S_BOX[temp[2] >> 4][temp[2] & 0xF];
+        temp[2] = S_BOX[temp[3] >> 4][temp[3] & 0xF];
+        temp[3] = S_BOX[t >> 4][t & 0xF];
+
+        temp[0] ^= RCON[round - 1];
+
+        for (int row = 0; row < 4; ++row) {
+            for (int col = 0; col < 4; ++col) {
+                if (col == 0) {
+                    roundKeys[round][row][col] = roundKeys[round - 1][row][col] ^ temp[row];
+                } else {
+                    roundKeys[round][row][col] = roundKeys[round][row][col - 1] ^ roundKeys[round - 1][row][col];
+                }
+            }
+        }
+    }
+}
+
+void SubBytes(uint8_t state[4][4]) {
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 4; ++j)
+            state[i][j] = S_BOX[state[i][j] >> 4][state[i][j] & 0xF];
+}
+
+void ShiftRows(uint8_t state[4][4]) {
+    uint8_t temp[4];
+    // Row 1
+    temp[0] = state[1][0];
+    temp[1] = state[1][1];
+    temp[2] = state[1][2];
+    temp[3] = state[1][3];
+    state[1][0] = temp[1];
+    state[1][1] = temp[2];
+    state[1][2] = temp[3];
+    state[1][3] = temp[0];
+    // Row 2
+    temp[0] = state[2][0];
+    temp[1] = state[2][1];
+    temp[2] = state[2][2];
+    temp[3] = state[2][3];
+    state[2][0] = temp[2];
+    state[2][1] = temp[3];
+    state[2][2] = temp[0];
+    state[2][3] = temp[1];
+    // Row 3
+    temp[0] = state[3][0];
+    temp[1] = state[3][1];
+    temp[2] = state[3][2];
+    temp[3] = state[3][3];
+    state[3][0] = temp[3];
+    state[3][1] = temp[0];
+    state[3][2] = temp[1];
+    state[3][3] = temp[2];
+}
+
+void MixColumns(uint8_t state[4][4]) {
+    uint8_t tempState[4][4];
+    for (int c = 0; c < 4; ++c) {
+        tempState[0][c] = (uint8_t)(0x02 * state[0][c] ^ 0x03 * state[1][c] ^ state[2][c] ^ state[3][c]);
+        tempState[1][c] = (uint8_t)(state[0][c] ^ 0x02 * state[1][c] ^ 0x03 * state[2][c] ^ state[3][c]);
+        tempState[2][c] = (uint8_t)(state[0][c] ^ state[1][c] ^ 0x02 * state[2][c] ^ 0x03 * state[3][c]);
+        tempState[3][c] = (uint8_t)(0x03 * state[0][c] ^ state[1][c] ^ state[2][c] ^ 0x02 * state[3][c]);
+    }
+    memcpy(state, tempState, sizeof(tempState));
+}
+
+void AddRoundKey(uint8_t state[4][4], uint8_t roundKey[4][4]) {
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 4; ++j)
+            state[i][j] ^= roundKey[i][j];
+}
+
+void PrintState(uint8_t state[4][4]) {
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            cout << hex << setw(2) << setfill('0') << (int)state[i][j] << " ";
+        }
+        cout << endl;
+    }
 }
