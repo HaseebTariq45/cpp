@@ -7,12 +7,10 @@
 
 using namespace std;
 
-// Define uint8_t as unsigned char if it is not defined
 #ifndef uint8_t
 typedef unsigned char uint8_t;
 #endif
 
-// AES S-box
 const uint8_t S_BOX[16][16] = {
     {0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76},
     {0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0},
@@ -45,10 +43,8 @@ const uint8_t INV_S_BOX[16][16] = {
     {0x94, 0xc8, 0x77, 0x45, 0x01, 0x0b, 0x77, 0xf6, 0x08, 0x89, 0x0a, 0x71, 0x06, 0x8d, 0x9a, 0x0f}
 };
 
-// AES Rcon
 const uint8_t RCON[10] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36};
 
-// Function Prototypes
 void KeyExpansion(const uint8_t* key, uint8_t roundKeys[11][4][4]);
 void SubBytes(uint8_t state[4][4], const uint8_t S[16][16]);
 void ShiftRows(uint8_t state[4][4]);
@@ -69,8 +65,7 @@ uint8_t gf_mul(uint8_t x, uint8_t y) {
     return x;
 }
 
-// Key Expansion
-// Key Expansion
+
 void KeyExpansion(const uint8_t* key, uint8_t roundKeys[11][4][4]) {
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
@@ -84,7 +79,6 @@ void KeyExpansion(const uint8_t* key, uint8_t roundKeys[11][4][4]) {
             temp[i] = roundKeys[round - 1][i][3];
         }
 
-        // Rotate and SubBytes
         uint8_t last = temp[0];
         for (int i = 0; i < 3; ++i) {
             temp[i] = temp[i + 1];
@@ -110,8 +104,6 @@ void KeyExpansion(const uint8_t* key, uint8_t roundKeys[11][4][4]) {
     }
 }
 
-
-// SubBytes
 void SubBytes(uint8_t state[4][4], const uint8_t S[16][16]) {
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
@@ -122,7 +114,6 @@ void SubBytes(uint8_t state[4][4], const uint8_t S[16][16]) {
     }
 }
 
-// AddRoundKey
 void AddRoundKey(uint8_t state[4][4], uint8_t roundKey[4][4]) {
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
@@ -131,7 +122,6 @@ void AddRoundKey(uint8_t state[4][4], uint8_t roundKey[4][4]) {
     }
 }
 
-// ShiftRows
 void ShiftRows(uint8_t state[4][4]) {
     uint8_t temp;
     for (int i = 1; i < 4; ++i) {
@@ -145,7 +135,6 @@ void ShiftRows(uint8_t state[4][4]) {
     }
 }
 
-// InvShiftRows
 void InvShiftRows(uint8_t state[4][4]) {
     uint8_t temp;
     for (int i = 1; i < 4; ++i) {
@@ -159,7 +148,6 @@ void InvShiftRows(uint8_t state[4][4]) {
     }
 }
 
-// MixColumns (AES)
 void MixColumns(uint8_t state[4][4]) {
     uint8_t temp[4];
     for (int i = 0; i < 4; ++i) {
@@ -175,7 +163,6 @@ void MixColumns(uint8_t state[4][4]) {
     }
 }
 
-// InvMixColumns (AES)
 void InvMixColumns(uint8_t state[4][4]) {
     uint8_t temp[4];
     for (int i = 0; i < 4; ++i) {
@@ -191,7 +178,6 @@ void InvMixColumns(uint8_t state[4][4]) {
     }
 }
 
-// AES Encryption
 void AES_Encrypt(uint8_t plaintext[16], uint8_t key[16], uint8_t ciphertext[16]) {
     uint8_t state[4][4];
     uint8_t roundKeys[11][4][4];
@@ -219,7 +205,6 @@ void AES_Encrypt(uint8_t plaintext[16], uint8_t key[16], uint8_t ciphertext[16])
             ciphertext[i + 4 * j] = state[i][j];
 }
 
-// AES Decryption
 void AES_Decrypt(uint8_t ciphertext[16], uint8_t key[16], uint8_t plaintext[16]) {
     uint8_t state[4][4];
     uint8_t roundKeys[11][4][4];
@@ -247,9 +232,7 @@ void AES_Decrypt(uint8_t ciphertext[16], uint8_t key[16], uint8_t plaintext[16])
             plaintext[i + 4 * j] = state[i][j];
 }
 
-// Main
 int main() {
-    // Test Case 1: "ConfidentialMsg" as plaintext
     uint8_t key[16] = {
         0x45, 0x6e, 0x63, 0x72, 0x79, 0x70, 0x74, 0x41,
         0x45, 0x53, 0x4b, 0x65, 0x79, 0x31, 0x32, 0x33
@@ -264,21 +247,18 @@ int main() {
     AES_Encrypt(plaintext, key, ciphertext);
     AES_Decrypt(ciphertext, key, decryptedtext);
 
-    // Output ciphertext as hex
     cout << "Ciphertext: ";
     for (int i = 0; i < 16; ++i) {
         cout << hex << setw(2) << setfill('0') << (int)ciphertext[i] << " ";
     }
     cout << endl;
 
-    // Output decrypted text as hex
     cout << "Decrypted text (hex): ";
     for (int i = 0; i < 16; ++i) {
         cout << hex << setw(2) << setfill('0') << (int)decryptedtext[i] << " ";
     }
     cout << endl;
 
-    // Repeat for "EncryptAESKey12"
     uint8_t key2[16] = {
         0x45, 0x6e, 0x63, 0x72, 0x79, 0x70, 0x74, 0x41,
         0x45, 0x53, 0x4b, 0x65, 0x79, 0x31, 0x32, 0x33
@@ -293,14 +273,12 @@ int main() {
     AES_Encrypt(plaintext2, key2, ciphertext2);
     AES_Decrypt(ciphertext2, key2, decryptedtext2);
 
-    // Output ciphertext as hex
     cout << "Ciphertext: ";
     for (int i = 0; i < 16; ++i) {
         cout << hex << setw(2) << setfill('0') << (int)ciphertext2[i] << " ";
     }
     cout << endl;
 
-    // Output decrypted text as hex
     cout << "Decrypted text (hex): ";
     for (int i = 0; i < 16; ++i) {
         cout << hex << setw(2) << setfill('0') << (int)decryptedtext2[i] << " ";
